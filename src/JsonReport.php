@@ -3,14 +3,14 @@
 namespace Elephant\Response;
 
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 readonly class JsonReport implements Reportable
 {
 	public function __construct(private Request $request) {}
 
-	public function report(JsonResponse|Throwable $response): array
+	public function report(Response|Throwable $response): array
 	{
 		return match ($this->request->getMethod()) {
 			'POST', 'PATCH', 'PUT' => $this->render($response->getContent(), 201, 'created'),

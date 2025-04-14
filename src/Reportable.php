@@ -2,10 +2,10 @@
 
 namespace Elephant\Response;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 interface Reportable
 {
-    public function report(JsonResponse|Throwable $response): array;
+    public function report(Response|Throwable $response): array;
 }
