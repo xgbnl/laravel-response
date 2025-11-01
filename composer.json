@@ -10,7 +10,7 @@
   },
   "minimum-stability": "dev",
   "require": {
-    "php": "^8.4",
+    "php": "^8.2",
     "laravel/sanctum": "^4.0.8",
     "illuminate/support": "^12.7.2",
     "symfony/http-foundation": "^7.2.5",
