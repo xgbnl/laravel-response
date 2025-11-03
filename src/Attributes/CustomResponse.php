@@ -1,13 +1,12 @@
 <?php
 
-namespace Elephant\Response\Attributes;
-
 declare(strict_types=1);
+
+namespace Elephant\Response\Attributes;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_FUNCTION)]
-#[Attribute(Attribute::TARGET_METHOD)]
+#[Attribute(Attribute::TARGET_FUNCTION | Attribute::TARGET_METHOD)]
 readonly class CustomResponse
 {
 
