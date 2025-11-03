@@ -29,6 +29,10 @@ readonly class FormatResponseBodyAdvice
 			return new JsonResponse($this->container->make('Reportable')->report($response->exception));
 		}
 
-		return new JsonResponse($this->container->make(Reportable::class)->report($response));
+		$reportable = $this->container->make(Reportable::class)
+			->setRequest($request)
+			->report($response);
+
+		return new JsonResponse($reportable);
 	}
 }

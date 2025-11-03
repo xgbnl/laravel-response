@@ -12,7 +12,7 @@ final class ServiceProvider extends BaseServiceProvider
 {
 	public function register(): void
 	{
-		$this->app->bind(Reportable::class, fn(Application $app): Reportable => new JsonReport($app['request']));
+		$this->app->bind(Reportable::class, JsonReport::class);
 		$this->app->alias(ThrowableReport::class, 'Reportable');
 	}
 

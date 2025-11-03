@@ -2,21 +2,45 @@
 
 namespace Elephant\Response;
 
+use Closure;
+use Elephant\Response\Attributes\CustomResponse;
 use Illuminate\Http\Request;
+use ReflectionClass;
+use ReflectionFunction;
+use ReflectionAttribute;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-readonly class JsonReport implements Reportable
+class JsonReport implements Reportable
 {
-	public function __construct(private Request $request) {}
+
+	protected ?Request $request = null;
 
 	public function report(Response|Throwable $response): array
 	{
-		return match ($this->request->getMethod()) {
-			'POST', 'PATCH', 'PUT' => $this->render($response->getContent(), 201, 'created'),
-			'DELETE'               => $this->render($response->getContent(), 204, 'deleted'),
-			default                => $this->render($response->getContent(), 200, 'success')
+		$responseResult = match ($this->request->getMethod()) {
+			'POST', 'PATCH', 'PUT' => [201, 'created'],
+			'DELETE'               => [204, 'deleted'],
+			default                => [200, 'success'],
 		};
+
+		[$statusCode, $message] = $responseResult;
+
+		if (isset($this->request->route()->action['uses'])) {
+			if (!is_null($reflector = $this->getReflectionAttr($this->request->route()->action['uses']))) {
+				$concrete = $reflector->newInstance();
+
+				if ($concrete->hasMessage()) {
+					$message = $concrete->getMessage();
+				}
+
+				if ($concrete->hasStatusCode()) {
+					$statusCode = $concrete->getStatusCode();
+				}
+			}
+		}
+
+		return $this->render($response->getContent(), $statusCode, $message);
 	}
 
 	private function render(mixed $content, int $status, string $message): array
@@ -30,5 +54,44 @@ readonly class JsonReport implements Reportable
 		}
 
 		return $response;
+	}
+
+	public function setRequest(Request $request): self
+	{
+		$this->request = $request;
+
+		return $this;
+	}
+
+	/**
+	 * @return ReflectionAttribute<CustomResponse>
+	 */
+	protected function getReflectionAttr(Closure|string $uses): ?ReflectionAttribute
+	{
+		if ($uses instanceof Closure) {
+
+			$reflectFunc = new ReflectionFunction($uses);
+
+			if (!empty($reflectFunc->getAttributes(CustomResponse::class))) {
+				return $reflectFunc->getAttributes(CustomResponse::class)[0];
+			}
+		}
+
+		if (preg_match('/^.+Controller@.+$/', $uses) === 1) {
+
+			$haystack = explode('@', $uses);
+
+			if (!empty($haystack) && count($haystack) === 2) {
+				[$clazz, $method] = $haystack;
+
+				$reflector = new ReflectionClass($clazz);
+
+				if ($reflector->hasMethod($method) && !empty($reflector->getMethod($method)->getAttributes(CustomResponse::class))) {
+					return $reflector->getMethod($method)->getAttributes(CustomResponse::class)[0];
+				}
+			}
+		}
+
+		return null;
 	}
 }
