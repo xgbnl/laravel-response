@@ -75,6 +75,8 @@ class JsonReport implements Reportable
 			if (!empty($reflectFunc->getAttributes(CustomResponse::class))) {
 				return $reflectFunc->getAttributes(CustomResponse::class)[0];
 			}
+
+			return null;
 		}
 
 		if (preg_match('/^.+Controller@.+$/', $uses) === 1) {
